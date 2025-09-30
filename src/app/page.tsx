@@ -51,13 +51,20 @@ export default async function Page() {
   const pairs = await getPairs();
 
   return (
-    <main className="min-h-screen bg-black">
-      <section className="w-full px-4 py-4">
-        <GalleryViewer pairs={pairs} />
-        
-        <h1 className="text-2xl md:text-3xl font-light tracking-wide text-white mt-6 px-4" style={{ fontFamily: 'Georgia, serif' }}>
-          Before / After {pairs.length > 0 && `(${pairs.length})`}
+    <main className="min-h-screen bg-neutral-50">
+      <header className="max-w-6xl mx-auto px-6 md:px-10 py-6">
+        <h1 className="text-2xl font-semibold text-neutral-900">
+          Before / After{" "}
+          {pairs.length > 0 && (
+            <span className="ml-2 text-sm text-neutral-500 font-normal">({pairs.length})</span>
+          )}
         </h1>
+        <p className="mt-2 text-sm text-neutral-600">
+          Drag to compare. Left = Before, Right = After.
+        </p>
+      </header>
+      <section className="max-w-6xl mx-auto px-6 md:px-10 pb-12">
+        <GalleryViewer pairs={pairs} />
       </section>
     </main>
   );
