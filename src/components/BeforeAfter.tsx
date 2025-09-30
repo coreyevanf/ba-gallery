@@ -14,7 +14,7 @@ export default function BeforeAfter({
   position?: number;
 }) {
   return (
-    <div className="w-full h-full bg-neutral-900">
+    <div className="w-full h-full bg-neutral-100">
       <ReactCompareSlider
         itemOne={
           <ReactCompareSliderImage
@@ -22,7 +22,7 @@ export default function BeforeAfter({
             alt={alt ? `${alt} before` : "Before"}
             loading="lazy"
             decoding="async"
-            style={{ objectFit: "cover", width: "100%", height: "100%" }}
+            style={{ objectFit: "contain", width: "100%", height: "100%" }}
           />
         }
         itemTwo={
@@ -31,7 +31,7 @@ export default function BeforeAfter({
             alt={alt ? `${alt} after` : "After"}
             loading="lazy"
             decoding="async"
-            style={{ objectFit: "cover", width: "100%", height: "100%" }}
+            style={{ objectFit: "contain", width: "100%", height: "100%" }}
           />
         }
         position={position}

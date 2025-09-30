@@ -1,39 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import BeforeAfter from "./BeforeAfter";
 
 type Pair = { id: number; beforeSrc: string; afterSrc: string };
 
 export default function GalleryViewer({ pairs }: { pairs: Pair[] }) {
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [swappedCards, setSwappedCards] = useState<Set<number>>(new Set());
-
-  const toggleSwap = (id: number) => {
-    setSwappedCards((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
-  const closeLightbox = () => setLightboxIndex(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const goToNext = () => {
-    if (lightboxIndex !== null) {
-      setLightboxIndex((lightboxIndex + 1) % pairs.length);
-    }
+    setCurrentIndex((prev) => (prev + 1) % pairs.length);
   };
 
   const goToPrevious = () => {
-    if (lightboxIndex !== null) {
-      setLightboxIndex((lightboxIndex - 1 + pairs.length) % pairs.length);
-    }
+    setCurrentIndex((prev) => (prev - 1 + pairs.length) % pairs.length);
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") goToNext();
+      if (e.key === "ArrowLeft") goToPrevious();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   if (pairs.length === 0) {
     return (
@@ -58,103 +48,96 @@ export default function GalleryViewer({ pairs }: { pairs: Pair[] }) {
   }
 
   return (
-    <>
-      {/* Grid Layout */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {pairs.map(({ id, beforeSrc, afterSrc }) => {
-          const isSwapped = swappedCards.has(id);
-          return (
-            <div key={id} className="space-y-3">
-              {/* Card */}
-              <div
-                className="rounded-2xl overflow-hidden bg-white shadow-sm ring-1 ring-neutral-200 cursor-pointer hover:shadow-md transition-shadow aspect-[3/2] md:aspect-[16/9] relative group"
-                onClick={() => setLightboxIndex(pairs.findIndex((p) => p.id === id))}
-              >
-                <BeforeAfter
-                  before={isSwapped ? afterSrc : beforeSrc}
-                  after={isSwapped ? beforeSrc : afterSrc}
-                  alt={`Interior ${id}`}
-                  position={50}
-                />
-              </div>
+    <div className="flex flex-col items-center justify-center space-y-6">
+      {/* Main Image Container */}
+      <div className="w-full relative">
+        <div className="rounded-2xl overflow-hidden bg-white shadow-lg ring-1 ring-neutral-200 aspect-[4/3] lg:aspect-[16/9] max-h-[75vh]">
+          <BeforeAfter
+            before={pairs[currentIndex].beforeSrc}
+            after={pairs[currentIndex].afterSrc}
+            alt={`Interior ${pairs[currentIndex].id}`}
+            position={50}
+          />
+        </div>
 
-              {/* Caption & Controls */}
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-neutral-600">
-                  Interior {id} — Before/After comparison
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => toggleSwap(id)}
-                    className="text-xs px-2 py-1 rounded bg-neutral-100 hover:bg-neutral-200 text-neutral-700 transition-colors"
-                    title={isSwapped ? "Restore original order" : "Swap before/after"}
-                  >
-                    {isSwapped ? "↺ Reset" : "⇄ Swap"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {/* Navigation Arrows - Positioned on sides of image */}
+        {pairs.length > 1 && (
+          <>
+            <button
+              onClick={goToPrevious}
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white hover:bg-neutral-50 text-neutral-800 rounded-full w-14 h-14 lg:w-16 lg:h-16 flex items-center justify-center shadow-lg ring-1 ring-neutral-200 hover:ring-neutral-300 transition-all hover:scale-105 z-10"
+              aria-label="Previous"
+            >
+              <svg className="w-6 h-6 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={goToNext}
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white hover:bg-neutral-50 text-neutral-800 rounded-full w-14 h-14 lg:w-16 lg:h-16 flex items-center justify-center shadow-lg ring-1 ring-neutral-200 hover:ring-neutral-300 transition-all hover:scale-105 z-10"
+              aria-label="Next"
+            >
+              <svg className="w-6 h-6 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </>
+        )}
       </div>
 
-      {/* Lightbox */}
-      {lightboxIndex !== null && (
-        <div
-          className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4"
-          onClick={closeLightbox}
-        >
-          <button
-            onClick={closeLightbox}
-            className="absolute top-4 right-4 text-white text-4xl hover:text-neutral-300 transition-colors z-50 w-10 h-10 flex items-center justify-center"
-            aria-label="Close"
-          >
-            ×
-          </button>
+      {/* Image Caption */}
+      <div className="text-center">
+        <p className="text-sm text-neutral-600">
+          Interior {pairs[currentIndex].id} — Before/After comparison
+        </p>
+      </div>
 
-          {pairs.length > 1 && (
-            <>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  goToPrevious();
-                }}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-5xl hover:text-neutral-300 transition-colors bg-black/30 hover:bg-black/50 rounded-full w-14 h-14 flex items-center justify-center"
-                aria-label="Previous"
-              >
-                ‹
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  goToNext();
-                }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-5xl hover:text-neutral-300 transition-colors bg-black/30 hover:bg-black/50 rounded-full w-14 h-14 flex items-center justify-center"
-                aria-label="Next"
-              >
-                ›
-              </button>
-            </>
-          )}
-
-          <div
-            className="w-full h-full max-w-7xl max-h-[90vh] relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="w-full h-full rounded-lg overflow-hidden">
-              <BeforeAfter
-                before={pairs[lightboxIndex].beforeSrc}
-                after={pairs[lightboxIndex].afterSrc}
-                alt={`Interior ${pairs[lightboxIndex].id}`}
-                position={50}
-              />
-            </div>
-            <p className="text-white text-center mt-4 text-sm">
-              {lightboxIndex + 1} / {pairs.length}
-            </p>
-          </div>
+      {/* Pagination Dots */}
+      {pairs.length > 1 && (
+        <div className="flex items-center gap-3 py-4">
+          {pairs.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentIndex(index)}
+              className={`transition-all rounded-full ${
+                index === currentIndex
+                  ? "bg-neutral-800 w-10 h-3"
+                  : "bg-neutral-300 hover:bg-neutral-400 w-3 h-3"
+              }`}
+              aria-label={`Go to image ${index + 1}`}
+            />
+          ))}
         </div>
       )}
-    </>
+
+      {/* Bottom Navigation Buttons */}
+      {pairs.length > 1 && (
+        <div className="flex items-center gap-4">
+          <button
+            onClick={goToPrevious}
+            className="px-6 py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Previous
+          </button>
+          
+          <div className="text-sm text-neutral-600 font-medium min-w-[80px] text-center">
+            {currentIndex + 1} of {pairs.length}
+          </div>
+          
+          <button
+            onClick={goToNext}
+            className="px-6 py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+          >
+            Next
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
