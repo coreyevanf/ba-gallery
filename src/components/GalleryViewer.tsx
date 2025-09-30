@@ -25,22 +25,24 @@ export default function GalleryViewer({ pairs }: { pairs: Pair[] }) {
 
   if (pairs.length === 0) {
     return (
-      <p className="text-neutral-400 text-center">
-        Drop image pairs in <code className="bg-neutral-800 px-1.5 py-0.5 rounded text-sm">/public/input</code> as{" "}
-        <code className="bg-neutral-800 px-1.5 py-0.5 rounded text-sm">interior_&lt;n&gt;_before.&lt;ext&gt;</code> and{" "}
-        <code className="bg-neutral-800 px-1.5 py-0.5 rounded text-sm">interior_&lt;n&gt;_after.&lt;ext&gt;</code>.
-      </p>
+      <div className="max-w-7xl mx-auto">
+        <p className="text-neutral-400 text-left">
+          Drop image pairs in <code className="bg-neutral-800 px-1.5 py-0.5 rounded text-sm">/public/input</code> as{" "}
+          <code className="bg-neutral-800 px-1.5 py-0.5 rounded text-sm">interior_&lt;n&gt;_before.&lt;ext&gt;</code> and{" "}
+          <code className="bg-neutral-800 px-1.5 py-0.5 rounded text-sm">interior_&lt;n&gt;_after.&lt;ext&gt;</code>.
+        </p>
+      </div>
     );
   }
 
   return (
     <>
       {/* Grid View */}
-      <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 auto-rows-[minmax(340px,auto)]">
+      <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 max-w-7xl mx-auto">
         {pairs.map(({ id, beforeSrc, afterSrc }, index) => (
           <div
             key={id}
-            className="h-[340px] md:h-[420px] lg:h-[520px] cursor-pointer"
+            className="h-[50vh] md:h-[60vh] lg:h-[70vh] cursor-pointer hover:opacity-90 transition-opacity"
             onClick={() => {
               setCurrentIndex(index);
               setIsFullscreen(true);
