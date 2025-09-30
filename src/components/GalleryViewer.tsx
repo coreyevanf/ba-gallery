@@ -38,11 +38,11 @@ export default function GalleryViewer({ pairs }: { pairs: Pair[] }) {
   return (
     <>
       {/* Grid View */}
-      <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 max-w-7xl mx-auto">
+      <div className="w-full">
         {pairs.map(({ id, beforeSrc, afterSrc }, index) => (
           <div
             key={id}
-            className="h-[50vh] md:h-[60vh] lg:h-[70vh] cursor-pointer hover:opacity-90 transition-opacity"
+            className="h-[85vh] md:h-[88vh] w-full cursor-pointer hover:opacity-90 transition-opacity"
             onClick={() => {
               setCurrentIndex(index);
               setIsFullscreen(true);

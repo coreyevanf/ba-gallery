@@ -52,10 +52,10 @@ export default async function Page() {
 
   return (
     <main className="min-h-screen bg-black">
-      <section className="w-full px-6 py-8">
+      <section className="w-full px-4 py-4">
         <GalleryViewer pairs={pairs} />
         
-        <h1 className="text-2xl md:text-3xl font-light tracking-wide text-white mt-8 max-w-7xl mx-auto" style={{ fontFamily: 'Georgia, serif' }}>
+        <h1 className="text-2xl md:text-3xl font-light tracking-wide text-white mt-6 px-4" style={{ fontFamily: 'Georgia, serif' }}>
           Before / After {pairs.length > 0 && `(${pairs.length})`}
         </h1>
       </section>
