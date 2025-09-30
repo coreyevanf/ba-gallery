@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import BeforeAfter from "./BeforeAfter";
 
 type Pair = { id: number; beforeSrc: string; afterSrc: string };
 
 export default function GalleryViewer({ pairs }: { pairs: Pair[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const goToNext = () => {
     setCurrentIndex((prev) => (prev + 1) % pairs.length);
@@ -17,11 +16,14 @@ export default function GalleryViewer({ pairs }: { pairs: Pair[] }) {
     setCurrentIndex((prev) => (prev - 1 + pairs.length) % pairs.length);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "ArrowRight") goToNext();
-    if (e.key === "ArrowLeft") goToPrevious();
-    if (e.key === "Escape") setIsFullscreen(false);
-  };
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") goToNext();
+      if (e.key === "ArrowLeft") goToPrevious();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   if (pairs.length === 0) {
     return (
@@ -36,68 +38,53 @@ export default function GalleryViewer({ pairs }: { pairs: Pair[] }) {
   }
 
   return (
-    <>
-      {/* Grid View */}
-      <div className="w-full">
-        {pairs.map(({ id, beforeSrc, afterSrc }, index) => (
-          <div
-            key={id}
-            className="h-[85vh] md:h-[88vh] w-full cursor-pointer hover:opacity-90 transition-opacity"
-            onClick={() => {
-              setCurrentIndex(index);
-              setIsFullscreen(true);
-            }}
-          >
-            <BeforeAfter before={beforeSrc} after={afterSrc} alt={`Interior ${id}`} />
-          </div>
-        ))}
+    <div className="relative w-full">
+      {/* Main Carousel */}
+      <div className="h-[85vh] md:h-[88vh] w-full relative">
+        <BeforeAfter
+          before={pairs[currentIndex].beforeSrc}
+          after={pairs[currentIndex].afterSrc}
+          alt={`Interior ${pairs[currentIndex].id}`}
+        />
+
+        {/* Navigation Arrows */}
+        {pairs.length > 1 && (
+          <>
+            <button
+              onClick={goToPrevious}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-5xl md:text-6xl hover:text-neutral-300 transition-colors z-10 bg-black/30 hover:bg-black/50 rounded-full w-12 h-12 md:w-16 md:h-16 flex items-center justify-center"
+              aria-label="Previous"
+            >
+              ‹
+            </button>
+            <button
+              onClick={goToNext}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-5xl md:text-6xl hover:text-neutral-300 transition-colors z-10 bg-black/30 hover:bg-black/50 rounded-full w-12 h-12 md:w-16 md:h-16 flex items-center justify-center"
+              aria-label="Next"
+            >
+              ›
+            </button>
+          </>
+        )}
       </div>
 
-      {/* Fullscreen Viewer */}
-      {isFullscreen && (
-        <div
-          className="fixed inset-0 bg-black z-50 flex items-center justify-center"
-          onKeyDown={handleKeyDown}
-          tabIndex={0}
-        >
-          <button
-            onClick={() => setIsFullscreen(false)}
-            className="absolute top-4 right-4 text-white text-4xl hover:text-neutral-400 z-50"
-            aria-label="Close"
-          >
-            ×
-          </button>
-
-          <button
-            onClick={goToPrevious}
-            className="absolute left-4 text-white text-6xl hover:text-neutral-400 z-50"
-            aria-label="Previous"
-          >
-            ‹
-          </button>
-
-          <div className="w-full h-full p-12 flex flex-col items-center justify-center">
-            <div className="w-full h-full max-w-7xl">
-              <BeforeAfter
-                before={pairs[currentIndex].beforeSrc}
-                after={pairs[currentIndex].afterSrc}
-                alt={`Interior ${pairs[currentIndex].id}`}
-              />
-            </div>
-            <p className="text-white mt-4 text-sm" style={{ fontFamily: 'Georgia, serif' }}>
-              {currentIndex + 1} / {pairs.length}
-            </p>
-          </div>
-
-          <button
-            onClick={goToNext}
-            className="absolute right-4 text-white text-6xl hover:text-neutral-400 z-50"
-            aria-label="Next"
-          >
-            ›
-          </button>
+      {/* Dot Navigation */}
+      {pairs.length > 1 && (
+        <div className="flex justify-center gap-2 mt-4 mb-2">
+          {pairs.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentIndex(index)}
+              className={`w-2.5 h-2.5 rounded-full transition-all ${
+                index === currentIndex
+                  ? "bg-white w-8"
+                  : "bg-white/40 hover:bg-white/60"
+              }`}
+              aria-label={`Go to image ${index + 1}`}
+            />
+          ))}
         </div>
       )}
-    </>
+    </div>
   );
 }
