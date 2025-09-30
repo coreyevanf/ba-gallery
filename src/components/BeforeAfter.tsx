@@ -12,7 +12,7 @@ export default function BeforeAfter({
   alt?: string;
 }) {
   return (
-    <div className="rounded-2xl overflow-hidden shadow bg-white h-full">
+    <div className="rounded-lg overflow-hidden shadow-xl bg-black h-full flex items-center justify-center">
       <ReactCompareSlider
         itemOne={
           <ReactCompareSliderImage
@@ -20,7 +20,7 @@ export default function BeforeAfter({
             alt={alt ? `${alt} before` : "Before"}
             loading="lazy"
             decoding="async"
-            style={{ objectFit: "cover", width: "100%", height: "100%" }}
+            style={{ objectFit: "contain", width: "100%", height: "100%" }}
           />
         }
         itemTwo={
@@ -29,12 +29,12 @@ export default function BeforeAfter({
             alt={alt ? `${alt} after` : "After"}
             loading="lazy"
             decoding="async"
-            style={{ objectFit: "cover", width: "100%", height: "100%" }}
+            style={{ objectFit: "contain", width: "100%", height: "100%" }}
           />
         }
         boundsPadding={0}
         keyboardIncrement="5%"
-        style={{ width: "100%", height: "100%" }}
+        style={{ width: "100%", height: "100%", backgroundColor: "black" }}
       />
     </div>
   );

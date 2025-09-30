@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import BeforeAfter from "@/components/BeforeAfter";
+import GalleryViewer from "@/components/GalleryViewer";
 
 type Pair = { id: number; beforeSrc: string; afterSrc: string };
 
@@ -51,31 +51,13 @@ export default async function Page() {
   const pairs = await getPairs();
 
   return (
-    <main className="min-h-screen bg-neutral-50">
+    <main className="min-h-screen bg-black">
       <section className="max-w-7xl mx-auto p-6 md:p-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-neutral-900 mb-4">
+        <h1 className="text-3xl md:text-4xl font-light tracking-wide text-white mb-8 text-center" style={{ fontFamily: 'Georgia, serif' }}>
           Before / After {pairs.length > 0 && `(${pairs.length})`}
         </h1>
 
-        {pairs.length === 0 ? (
-          <p className="text-neutral-600">
-            Drop image pairs in <code className="bg-neutral-200 px-1.5 py-0.5 rounded text-sm">/public/input</code> as{" "}
-            <code className="bg-neutral-200 px-1.5 py-0.5 rounded text-sm">interior_&lt;n&gt;_before.&lt;ext&gt;</code> and{" "}
-            <code className="bg-neutral-200 px-1.5 py-0.5 rounded text-sm">interior_&lt;n&gt;_after.&lt;ext&gt;</code>.
-          </p>
-        ) : (
-          <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 auto-rows-[minmax(340px,auto)]">
-            {pairs.map(({ id, beforeSrc, afterSrc }) => (
-              <div key={id} className="h-[340px] md:h-[420px] lg:h-[520px]">
-                <BeforeAfter
-                  before={beforeSrc}
-                  after={afterSrc}
-                  alt={`Interior ${id}`}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+        <GalleryViewer pairs={pairs} />
       </section>
     </main>
   );
