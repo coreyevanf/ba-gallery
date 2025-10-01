@@ -9,6 +9,8 @@ type ImageSet = { name: string; slug: string; pairs: Pair[] };
 export default function GalleryViewer({ imageSets }: { imageSets: ImageSet[] }) {
   const [currentSetIndex, setCurrentSetIndex] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
   const currentSet = imageSets[currentSetIndex];
   const pairs = currentSet?.pairs || [];
@@ -36,6 +38,32 @@ export default function GalleryViewer({ imageSets }: { imageSets: ImageSet[] }) 
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [pairs.length]);
 
+  // Handle loading state when image changes
+  useEffect(() => {
+    if (pairs.length === 0) return;
+    
+    const currentPair = pairs[currentImageIndex];
+    const beforeLoaded = loadedImages.has(currentPair.beforeSrc);
+    const afterLoaded = loadedImages.has(currentPair.afterSrc);
+    
+    if (beforeLoaded && afterLoaded) {
+      setIsLoading(false);
+    } else {
+      setIsLoading(true);
+      // Preload images
+      const preloadImage = (src: string) => {
+        const img = new Image();
+        img.onload = () => {
+          setLoadedImages(prev => new Set(prev).add(src));
+        };
+        img.src = src;
+      };
+      
+      if (!beforeLoaded) preloadImage(currentPair.beforeSrc);
+      if (!afterLoaded) preloadImage(currentPair.afterSrc);
+    }
+  }, [currentImageIndex, currentSetIndex, pairs, loadedImages]);
+
   if (imageSets.length === 0) {
     return (
       <div className="text-center py-12">
@@ -60,6 +88,20 @@ export default function GalleryViewer({ imageSets }: { imageSets: ImageSet[] }) 
 
   return (
     <div className="flex flex-col gap-10">
+      {/* Loading Spinner Overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+              <svg className="w-6 h-6 text-white/60" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {imageSets.length > 1 && (
         <div className="sticky top-6 z-30 mb-8">
           <div className="flex items-center justify-between text-xs uppercase tracking-[0.25em] text-white/50 mb-6 pt-4">
