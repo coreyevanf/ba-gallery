@@ -61,14 +61,14 @@ export default function GalleryViewer({ imageSets }: { imageSets: ImageSet[] }) 
   return (
     <div className="flex flex-col gap-10">
       {imageSets.length > 1 && (
-        <div className="sticky top-6 z-30 mb-8">
-          <div className="flex items-center justify-between text-xs uppercase tracking-[0.25em] text-white/50 mb-2">
+        <div className="sticky top-6 z-30 py-8 mb-12">
+          <div className="flex items-center justify-between text-xs uppercase tracking-[0.25em] text-white/50 mb-3 py-40">
             <span>Galleries</span>
             <span className="tracking-normal text-white/40">
               {currentSetIndex + 1}/{imageSets.length}
             </span>
           </div>
-          <div className="flex gap-2 overflow-x-auto px-3 py-2 rounded-full bg-white/5 backdrop-blur">
+          <div className="flex gap-2 overflow-x-auto px-3 py-2 rounded-full bg-white/5 backdrop-blur mb-6 mt-1">
             {imageSets.map((set, index) => {
               const isActive = index === currentSetIndex;
               return (
@@ -112,28 +112,7 @@ export default function GalleryViewer({ imageSets }: { imageSets: ImageSet[] }) 
               </p>
             </div>
 
-            {pairs.length > 1 && (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={goToPrevious}
-                  className="flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-white/80 transition hover:bg-white/10 hover:text-white"
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                  Previous
-                </button>
-                <button
-                  onClick={goToNext}
-                  className="flex items-center gap-2 rounded-full bg-white text-black px-4 py-2 font-medium transition hover:bg-white/90"
-                >
-                  Next
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-            )}
+
           </div>
 
           {pairs.length > 1 && (
