@@ -14,7 +14,7 @@ export default function BeforeAfter({
   position?: number;
 }) {
   return (
-    <div className="w-full h-full bg-black">
+    <div className="w-full h-full bg-black flex items-center justify-center">
       <ReactCompareSlider
         itemOne={
           <ReactCompareSliderImage

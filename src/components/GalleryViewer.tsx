@@ -28,30 +28,21 @@ export default function GalleryViewer({ pairs }: { pairs: Pair[] }) {
   if (pairs.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-white/60 font-light">
+        <p className="text-white/60">
           Drop image pairs in{" "}
           <code className="bg-white/10 px-2 py-1 rounded font-mono text-sm text-white/80">
             /public/input
-          </code>{" "}
-          as{" "}
-          <code className="bg-white/10 px-2 py-1 rounded font-mono text-sm text-white/80">
-            interior_&lt;n&gt;_before.&lt;ext&gt;
-          </code>{" "}
-          and{" "}
-          <code className="bg-white/10 px-2 py-1 rounded font-mono text-sm text-white/80">
-            interior_&lt;n&gt;_after.&lt;ext&gt;
           </code>
-          .
         </p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center space-y-8">
-      {/* Main Image Container */}
-      <div className="w-full relative">
-        <div className="rounded-xl overflow-hidden bg-black border border-white/10 aspect-[4/3] lg:aspect-[16/9] max-h-[75vh] shadow-2xl">
+    <div className="flex flex-col items-center space-y-6">
+      {/* Main Image Container - Centered */}
+      <div className="w-full flex items-center justify-center">
+        <div className="w-full max-w-5xl aspect-[16/9] max-h-[80vh] rounded-xl overflow-hidden">
           <BeforeAfter
             before={pairs[currentIndex].beforeSrc}
             after={pairs[currentIndex].afterSrc}
@@ -59,82 +50,71 @@ export default function GalleryViewer({ pairs }: { pairs: Pair[] }) {
             position={50}
           />
         </div>
-
-        {/* Navigation Arrows - Positioned on sides of image */}
-        {pairs.length > 1 && (
-          <>
-            <button
-              onClick={goToPrevious}
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white rounded-full w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center border border-white/20 hover:border-white/40 transition-all hover:scale-110 z-10 group"
-              aria-label="Previous"
-            >
-              <svg className="w-6 h-6 lg:w-7 lg:h-7 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button
-              onClick={goToNext}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white rounded-full w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center border border-white/20 hover:border-white/40 transition-all hover:scale-110 z-10 group"
-              aria-label="Next"
-            >
-              <svg className="w-6 h-6 lg:w-7 lg:h-7 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </>
-        )}
       </div>
 
-      {/* Image Caption */}
-      <div className="text-center">
-        <p className="text-sm text-white/50 font-light">
-          Interior {pairs[currentIndex].id}
-        </p>
+      {/* Title Below Image - Left Aligned */}
+      <div className="w-full max-w-5xl">
+        <h1 className="text-2xl md:text-3xl text-white font-normal">
+          Before / After{" "}
+          {pairs.length > 1 && (
+            <span className="text-white/40 text-lg">({currentIndex + 1}/{pairs.length})</span>
+          )}
+        </h1>
       </div>
 
-      {/* Pagination Dots */}
+      {/* Thumbnail Gallery */}
       {pairs.length > 1 && (
-        <div className="flex items-center gap-2.5 py-2">
-          {pairs.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={`transition-all rounded-full ${
-                index === currentIndex
-                  ? "bg-white w-10 h-2.5"
-                  : "bg-white/30 hover:bg-white/50 w-2.5 h-2.5"
-              }`}
-              aria-label={`Go to image ${index + 1}`}
-            />
-          ))}
+        <div className="w-full max-w-5xl">
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {pairs.map((pair, index) => (
+              <button
+                key={pair.id}
+                onClick={() => setCurrentIndex(index)}
+                className={`relative flex-shrink-0 w-24 h-16 rounded-lg overflow-hidden transition-all ${
+                  index === currentIndex
+                    ? "ring-2 ring-white scale-105"
+                    : "opacity-50 hover:opacity-100 hover:scale-105"
+                }`}
+              >
+                <img
+                  src={pair.beforeSrc}
+                  alt={`Thumbnail ${pair.id}`}
+                  className="w-full h-full object-cover"
+                />
+                {index === currentIndex && (
+                  <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px]"></div>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Bottom Navigation Buttons */}
+      {/* Modern Navigation Buttons */}
       {pairs.length > 1 && (
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3">
           <button
             onClick={goToPrevious}
-            className="group px-6 py-3 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg font-light transition-all flex items-center gap-2 border border-white/20 hover:border-white/40"
+            className="group relative px-8 py-3 bg-gradient-to-r from-white/10 to-white/5 hover:from-white/20 hover:to-white/10 text-white rounded-full transition-all duration-300 border border-white/10 hover:border-white/20 hover:scale-105"
           >
-            <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Previous
+            <span className="flex items-center gap-2">
+              <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Previous
+            </span>
           </button>
-          
-          <div className="text-sm text-white/60 font-light min-w-[70px] text-center">
-            {currentIndex + 1} of {pairs.length}
-          </div>
           
           <button
             onClick={goToNext}
-            className="group px-6 py-3 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg font-light transition-all flex items-center gap-2 border border-white/20 hover:border-white/40"
+            className="group relative px-8 py-3 bg-gradient-to-r from-white to-white/90 hover:from-white hover:to-white text-black rounded-full transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
           >
-            Next
-            <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            <span className="flex items-center gap-2 font-medium">
+              Next
+              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
           </button>
         </div>
       )}
