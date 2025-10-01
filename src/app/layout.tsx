@@ -8,7 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Before / After Gallery",
+  title: "Real Estate - AI Image Generator",
   description: "Before and After Image Comparison Gallery",
 };
 
