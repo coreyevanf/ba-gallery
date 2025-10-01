@@ -2,11 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #000;
+  color: #fff;
+}
+
 img {
   max-width: 100%;
   height: auto;
-}
-
-* {
-  box-sizing: border-box;
 }

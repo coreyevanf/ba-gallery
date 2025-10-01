@@ -51,16 +51,16 @@ export default async function Page() {
   const pairs = await getPairs();
 
   return (
-    <main className="min-h-screen bg-neutral-50">
-      <header className="max-w-6xl mx-auto px-6 md:px-10 py-6">
-        <h1 className="text-2xl font-semibold text-neutral-900">
+    <main className="min-h-screen bg-black">
+      <header className="max-w-6xl mx-auto px-6 md:px-10 py-8">
+        <h1 className="text-3xl md:text-4xl font-light text-white tracking-tight">
           Before / After{" "}
           {pairs.length > 0 && (
-            <span className="ml-2 text-sm text-neutral-500 font-normal">({pairs.length})</span>
+            <span className="ml-3 text-base text-white/50 font-light">({pairs.length})</span>
           )}
         </h1>
-        <p className="mt-2 text-sm text-neutral-600">
-          Drag to compare. Left = Before, Right = After.
+        <p className="mt-3 text-sm text-white/60 font-light">
+          Drag to compare • Left = Before • Right = After
         </p>
       </header>
       <section className="max-w-6xl mx-auto px-6 md:px-10 pb-12">
