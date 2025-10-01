@@ -61,14 +61,16 @@ export default function GalleryViewer({ imageSets }: { imageSets: ImageSet[] }) 
   return (
     <div className="flex flex-col gap-10">
       {imageSets.length > 1 && (
-        <div className="sticky top-6 z-30 py-8 mb-12">
-          <div className="flex items-center justify-between text-xs uppercase tracking-[0.25em] text-white/50 mb-3 py-40">
+        <div className="sticky top-6 z-30 mb-8">
+          <div className="flex items-center justify-between text-xs uppercase tracking-[0.25em] text-white/50 mb-6 pt-4">
             <span>Galleries</span>
+            <div style={{ paddingBlock: "20px" }} aria-hidden />
             <span className="tracking-normal text-white/40">
               {currentSetIndex + 1}/{imageSets.length}
             </span>
+            
           </div>
-          <div className="flex gap-2 overflow-x-auto px-3 py-2 rounded-full bg-white/5 backdrop-blur mb-6 mt-1">
+          <div className="flex gap-2 overflow-x-auto px-3 py-2 rounded-full bg-white/5 backdrop-blur">
             {imageSets.map((set, index) => {
               const isActive = index === currentSetIndex;
               return (
@@ -89,6 +91,7 @@ export default function GalleryViewer({ imageSets }: { imageSets: ImageSet[] }) 
         </div>
       )}
 
+<div style={{ paddingBlock: "15px" }} aria-hidden />
       <div className="flex flex-col items-center gap-8 min-h-[75vh] justify-center py-8">
         <div className="w-full max-w-5xl">
           <div className="rounded-xl overflow-hidden shadow-2xl mx-auto" style={{ maxWidth: '90vw' }}>
