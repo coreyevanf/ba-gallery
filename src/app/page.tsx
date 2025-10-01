@@ -2,12 +2,18 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import GalleryViewer from "@/components/GalleryViewer";
 
-type Pair = { id: number; beforeSrc: string; afterSrc: string };
+type Pair = { id: string; beforeSrc: string; afterSrc: string };
 type ImageSet = { name: string; slug: string; pairs: Pair[] };
 
 const exts = ["jpg", "jpeg", "png", "webp", "avif"];
-const beforeRe = new RegExp(`^interior_(\\d+)_before\\.(${exts.join("|")})$`, "i");
-const afterRe = new RegExp(`^interior_(\\d+)_after\\.(${exts.join("|")})$`, "i");
+const beforeRe = new RegExp(
+  `^(?<category>[a-z0-9_-]+)_(?<index>\\d+)_before\\.(${exts.join("|")})$`,
+  "i"
+);
+const afterRe = new RegExp(
+  `^(?<category>[a-z0-9_-]+)_(?<index>\\d+)_after\\.(${exts.join("|")})$`,
+  "i"
+);
 
 async function getImageSets(): Promise<ImageSet[]> {
   const inputDir = path.join(process.cwd(), "public", "input");
@@ -47,34 +53,51 @@ async function getImageSets(): Promise<ImageSet[]> {
 }
 
 async function getPairsFromFiles(files: string[], basePath: string): Promise<Pair[]> {
-  const beforeMap = new Map<number, string>();
-  const afterMap = new Map<number, string>();
+  type Record = {
+    category: string;
+    index: number;
+    beforeSrc?: string;
+    afterSrc?: string;
+  };
 
-  for (const f of files) {
-    const mB = f.match(beforeRe);
-    if (mB) {
-      beforeMap.set(Number(mB[1]), `${basePath}/${f}`);
+  const records = new Map<string, Record>();
+
+  for (const fileName of files) {
+    const beforeMatch = fileName.match(beforeRe);
+    if (beforeMatch?.groups) {
+      const category = beforeMatch.groups.category.toLowerCase();
+      const index = Number(beforeMatch.groups.index);
+      const key = `${category}#${index}`;
+      const record = records.get(key) ?? { category, index };
+      record.beforeSrc = `${basePath}/${fileName}`;
+      records.set(key, record);
       continue;
     }
-    const mA = f.match(afterRe);
-    if (mA) {
-      afterMap.set(Number(mA[1]), `${basePath}/${f}`);
+
+    const afterMatch = fileName.match(afterRe);
+    if (afterMatch?.groups) {
+      const category = afterMatch.groups.category.toLowerCase();
+      const index = Number(afterMatch.groups.index);
+      const key = `${category}#${index}`;
+      const record = records.get(key) ?? { category, index };
+      record.afterSrc = `${basePath}/${fileName}`;
+      records.set(key, record);
     }
   }
 
-  const ids = Array.from(new Set([...beforeMap.keys(), ...afterMap.keys()])).sort(
-    (a, b) => a - b
-  );
-
-  const pairs: Pair[] = [];
-  for (const id of ids) {
-    const beforeSrc = beforeMap.get(id);
-    const afterSrc = afterMap.get(id);
-    if (beforeSrc && afterSrc) {
-      pairs.push({ id, beforeSrc, afterSrc });
-    }
-  }
-  return pairs;
+  return Array.from(records.values())
+    .filter((record) => record.beforeSrc && record.afterSrc)
+    .sort((a, b) => {
+      if (a.category === b.category) {
+        return a.index - b.index;
+      }
+      return a.category.localeCompare(b.category);
+    })
+    .map(({ category, index, beforeSrc, afterSrc }) => ({
+      id: `${category}-${index}`,
+      beforeSrc: beforeSrc!,
+      afterSrc: afterSrc!,
+    }));
 }
 
 export default async function Page() {

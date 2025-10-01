@@ -22,7 +22,12 @@ export default function BeforeAfter({
             alt={alt ? `${alt} before` : "Before"}
             loading="lazy"
             decoding="async"
-            style={{ objectFit: "contain", width: "100%", height: "100%" }}
+            style={{
+              objectFit: "contain",
+              objectPosition: "center",
+              width: "100%",
+              height: "100%",
+            }}
           />
         }
         itemTwo={
@@ -31,7 +36,12 @@ export default function BeforeAfter({
             alt={alt ? `${alt} after` : "After"}
             loading="lazy"
             decoding="async"
-            style={{ objectFit: "contain", width: "100%", height: "100%" }}
+            style={{
+              objectFit: "contain",
+              objectPosition: "center",
+              width: "100%",
+              height: "100%",
+            }}
           />
         }
         position={position}
@@ -57,7 +67,7 @@ export default function BeforeAfter({
             </div>
           </div>
         }
-        style={{ width: "100%", height: "100%" }}
+        style={{ width: "100%", height: "100%", maxWidth: "100%", margin: "0 auto" }}
       />
     </div>
   );

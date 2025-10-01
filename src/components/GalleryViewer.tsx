@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import BeforeAfter from "./BeforeAfter";
 
-type Pair = { id: number; beforeSrc: string; afterSrc: string };
+type Pair = { id: string; beforeSrc: string; afterSrc: string };
 type ImageSet = { name: string; slug: string; pairs: Pair[] };
 
 export default function GalleryViewer({ imageSets }: { imageSets: ImageSet[] }) {
@@ -59,128 +59,142 @@ export default function GalleryViewer({ imageSets }: { imageSets: ImageSet[] }) 
   }
 
   return (
-    <div className="flex flex-col space-y-6">
-      {/* Gallery Navigation Links */}
+    <div className="flex flex-col gap-10">
       {imageSets.length > 1 && (
-        <div className="flex flex-wrap gap-3">
-          {imageSets.map((set, index) => (
-            <button
-              key={set.slug}
-              onClick={() => switchSet(index)}
-              className={`px-6 py-2.5 rounded-full transition-all font-medium ${
-                index === currentSetIndex
-                  ? "bg-white text-black"
-                  : "bg-white/10 text-white/80 hover:bg-white/20 hover:text-white border border-white/10"
-              }`}
-            >
-              {set.name}
-            </button>
-          ))}
+        <div className="sticky top-6 z-30 mb-8">
+          <div className="flex items-center justify-between text-xs uppercase tracking-[0.25em] text-white/50 mb-2">
+            <span>Galleries</span>
+            <span className="tracking-normal text-white/40">
+              {currentSetIndex + 1}/{imageSets.length}
+            </span>
+          </div>
+          <div className="flex gap-2 overflow-x-auto px-3 py-2 rounded-full bg-white/5 backdrop-blur">
+            {imageSets.map((set, index) => {
+              const isActive = index === currentSetIndex;
+              return (
+                <button
+                  key={set.slug}
+                  onClick={() => switchSet(index)}
+                  className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                    isActive
+                      ? "bg-white text-black shadow-sm"
+                      : "text-white/70 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  {set.name}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
-      <div className="flex flex-col items-center space-y-6">
-        {/* Main Image Container - Centered */}
-        <div className="w-full flex items-center justify-center">
-          <div className="w-full max-w-5xl aspect-[16/9] max-h-[80vh] rounded-xl overflow-hidden">
-            <BeforeAfter
-              before={pairs[currentImageIndex].beforeSrc}
-              after={pairs[currentImageIndex].afterSrc}
-              alt={`${currentSet.name} ${pairs[currentImageIndex].id}`}
-              position={50}
-            />
-          </div>
-        </div>
-
-        {/* Title Below Image - Left Aligned */}
+      <div className="flex flex-col items-center gap-8 min-h-[75vh] justify-center py-8">
         <div className="w-full max-w-5xl">
-          <h1 className="text-2xl md:text-3xl text-white font-normal">
-            {currentSet.name} - Before / After{" "}
+          <div className="rounded-xl overflow-hidden shadow-2xl mx-auto" style={{ maxWidth: '90vw' }}>
+            <div className="aspect-[16/9] bg-black flex items-center justify-center">
+              <BeforeAfter
+                before={pairs[currentImageIndex].beforeSrc}
+                after={pairs[currentImageIndex].afterSrc}
+                alt={`${currentSet.name} ${pairs[currentImageIndex].id}`}
+                position={50}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-end justify-between gap-4 pb-4">
+            <div className="space-y-1">
+              <h1 className="text-2xl md:text-3xl text-white font-semibold">
+                {currentSet.name}
+              </h1>
+              <p className="text-white/60 text-sm md:text-base">
+                Before / After • Shot {currentImageIndex + 1} of {pairs.length}
+              </p>
+            </div>
+
             {pairs.length > 1 && (
-              <span className="text-white/40 text-lg">
-                ({currentImageIndex + 1}/{pairs.length})
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={goToPrevious}
+                  className="flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-white/80 transition hover:bg-white/10 hover:text-white"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Previous
+                </button>
+                <button
+                  onClick={goToNext}
+                  className="flex items-center gap-2 rounded-full bg-white text-black px-4 py-2 font-medium transition hover:bg-white/90"
+                >
+                  Next
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
             )}
-          </h1>
+          </div>
+
+          {pairs.length > 1 && (
+            <div className="lg:hidden">
+              <div className="text-xs uppercase tracking-[0.25em] text-white/50 mb-3">Thumbnails</div>
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                {pairs.map((pair, index) => (
+                  <button
+                    key={pair.id}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`relative flex-shrink-0 rounded-lg overflow-hidden transition-all ${
+                      index === currentImageIndex
+                        ? "ring-2 ring-white scale-105"
+                        : "opacity-60 hover:opacity-100 hover:scale-105"
+                    }`}
+                    style={{ width: "96px", height: "64px" }}
+                  >
+                    <img
+                      src={pair.beforeSrc}
+                      alt={`Thumbnail ${pair.id}`}
+                      className="h-full w-full object-cover"
+                      width={96}
+                      height={64}
+                    />
+                    {index === currentImageIndex && (
+                      <div className="pointer-events-none absolute inset-0 bg-white/20 backdrop-blur-[1px]" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Thumbnail Gallery */}
         {pairs.length > 1 && (
-          <div className="w-full max-w-5xl">
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="hidden w-full max-w-5xl rounded-2xl bg-white/5 backdrop-blur-md px-5 py-6 lg:block">
+            <div className="text-xs uppercase tracking-[0.25em] text-white/50 mb-4">Thumbnails</div>
+            <div className="grid grid-cols-4 gap-4">
               {pairs.map((pair, index) => (
                 <button
                   key={pair.id}
                   onClick={() => setCurrentImageIndex(index)}
-                  className={`relative flex-shrink-0 rounded-lg overflow-hidden transition-all ${
+                  className={`relative rounded-xl overflow-hidden transition-all ${
                     index === currentImageIndex
-                      ? "ring-2 ring-white scale-105"
-                      : "opacity-50 hover:opacity-100 hover:scale-105"
+                      ? "ring-2 ring-white"
+                      : "opacity-70 hover:opacity-100"
                   }`}
-                  style={{ width: '96px', height: '64px' }}
                 >
                   <img
                     src={pair.beforeSrc}
                     alt={`Thumbnail ${pair.id}`}
-                    className="w-full h-full object-cover"
-                    width={96}
-                    height={64}
+                    className="h-full w-full object-cover"
+                    width={140}
+                    height={90}
                   />
                   {index === currentImageIndex && (
-                    <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px] pointer-events-none"></div>
+                    <div className="pointer-events-none absolute inset-0 bg-white/15 backdrop-blur-[1px]" />
                   )}
                 </button>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* Modern Navigation Buttons */}
-        {pairs.length > 1 && (
-          <div className="flex items-center gap-3">
-            <button
-              onClick={goToPrevious}
-              className="group relative px-8 py-3 bg-gradient-to-r from-white/10 to-white/5 hover:from-white/20 hover:to-white/10 text-white rounded-full transition-all duration-300 border border-white/10 hover:border-white/20 hover:scale-105"
-            >
-              <span className="flex items-center gap-2">
-                <svg
-                  className="w-5 h-5 group-hover:-translate-x-1 transition-transform"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-                Previous
-              </span>
-            </button>
-
-            <button
-              onClick={goToNext}
-              className="group relative px-8 py-3 bg-gradient-to-r from-white to-white/90 hover:from-white hover:to-white text-black rounded-full transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
-            >
-              <span className="flex items-center gap-2 font-medium">
-                Next
-                <svg
-                  className="w-5 h-5 group-hover:translate-x-1 transition-transform"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </span>
-            </button>
           </div>
         )}
       </div>
