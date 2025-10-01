@@ -70,19 +70,22 @@ export default function GalleryViewer({ pairs }: { pairs: Pair[] }) {
               <button
                 key={pair.id}
                 onClick={() => setCurrentIndex(index)}
-                className={`relative flex-shrink-0 w-24 h-16 rounded-lg overflow-hidden transition-all ${
+                className={`relative flex-shrink-0 w-20 h-14 md:w-24 md:h-16 rounded-lg overflow-hidden transition-all ${
                   index === currentIndex
                     ? "ring-2 ring-white scale-105"
                     : "opacity-50 hover:opacity-100 hover:scale-105"
                 }`}
               >
-                <img
-                  src={pair.beforeSrc}
-                  alt={`Thumbnail ${pair.id}`}
-                  className="w-full h-full object-cover"
-                />
+                <div className="w-full h-full bg-black">
+                  <img
+                    src={pair.beforeSrc}
+                    alt={`Thumbnail ${pair.id}`}
+                    className="w-full h-full object-cover"
+                    style={{ maxWidth: '100%', maxHeight: '100%' }}
+                  />
+                </div>
                 {index === currentIndex && (
-                  <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px]"></div>
+                  <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px] pointer-events-none"></div>
                 )}
               </button>
             ))}
