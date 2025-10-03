@@ -1,78 +1,81 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import BeforeAfter from "./BeforeAfter";
-
-type Pair = { id: string; beforeSrc: string; afterSrc: string };
-type ImageSet = { name: string; slug: string; pairs: Pair[] };
+import { useState, useEffect, useCallback, useMemo } from "react";
+import type { ImageSet } from "@/lib/imageSets";
 
 export default function GalleryViewer({ imageSets }: { imageSets: ImageSet[] }) {
   const [currentSetIndex, setCurrentSetIndex] = useState(0);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
+  const [selectedImage, setSelectedImage] = useState<{ src: string; id: string; index: number } | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const currentSet = imageSets[currentSetIndex];
-  const pairs = currentSet?.pairs || [];
-
-  const goToNext = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % pairs.length);
-  };
-
-  const goToPrevious = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + pairs.length) % pairs.length);
-  };
+  const pairs = useMemo(() => currentSet?.pairs ?? [], [currentSet]);
 
   const switchSet = (index: number) => {
-    setCurrentSetIndex(index);
-    setCurrentImageIndex(0);
+    if (index === currentSetIndex) return;
+    setIsTransitioning(true);
+    setSelectedImage(null);
+    setTimeout(() => {
+      setCurrentSetIndex(index);
+      setIsTransitioning(false);
+    }, 200);
   };
 
+  const goToNext = useCallback(() => {
+    setSelectedImage((current) => {
+      if (!current) return current;
+      const nextIndex = current.index + 1;
+      const nextPair = pairs[nextIndex];
+      if (!nextPair) return current;
+      return { src: nextPair.afterSrc, id: nextPair.id, index: nextIndex };
+    });
+  }, [pairs]);
+
+  const goToPrevious = useCallback(() => {
+    setSelectedImage((current) => {
+      if (!current) return current;
+      const prevIndex = current.index - 1;
+      const prevPair = pairs[prevIndex];
+      if (!prevPair) return current;
+      return { src: prevPair.afterSrc, id: prevPair.id, index: prevIndex };
+    });
+  }, [pairs]);
+
+  const handleThumbnailClick = useCallback(
+    (index: number) => {
+      const pair = pairs[index];
+      if (!pair) return;
+      setSelectedImage({ src: pair.afterSrc, id: pair.id, index });
+    },
+    [pairs]
+  );
+
+  // Keyboard navigation
   useEffect(() => {
+    if (!selectedImage) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (pairs.length === 0) return;
+      if (e.key === "Escape") setSelectedImage(null);
       if (e.key === "ArrowRight") goToNext();
       if (e.key === "ArrowLeft") goToPrevious();
     };
+
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [pairs.length]);
+  }, [selectedImage, goToNext, goToPrevious]);
 
-  // Handle loading state when image changes
-  useEffect(() => {
-    if (pairs.length === 0) return;
-    
-    const currentPair = pairs[currentImageIndex];
-    const beforeLoaded = loadedImages.has(currentPair.beforeSrc);
-    const afterLoaded = loadedImages.has(currentPair.afterSrc);
-    
-    if (beforeLoaded && afterLoaded) {
-      setIsLoading(false);
-    } else {
-      setIsLoading(true);
-      // Preload images
-      const preloadImage = (src: string) => {
-        const img = new Image();
-        img.onload = () => {
-          setLoadedImages(prev => new Set(prev).add(src));
-        };
-        img.src = src;
-      };
-      
-      if (!beforeLoaded) preloadImage(currentPair.beforeSrc);
-      if (!afterLoaded) preloadImage(currentPair.afterSrc);
-    }
-  }, [currentImageIndex, currentSetIndex, pairs, loadedImages]);
+  const formatPairLabel = (value: string) =>
+    value
+      .split(/[-_]/)
+      .filter(Boolean)
+      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+      .join(" ") || "Image";
 
   if (imageSets.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-white/60">
-          Drop image pairs in{" "}
-          <code className="bg-white/10 px-2 py-1 rounded font-mono text-sm text-white/80">
-            /public/input
-          </code>{" "}
-          or create subfolders for different galleries
+      <div className="rounded-3xl border border-dashed border-gray-300 bg-white/60 px-6 py-16 text-center">
+        <p className="text-gray-500">
+          Drop image pairs into <code className="rounded bg-gray-100 px-2 py-1 font-mono text-sm text-gray-700">/public/input</code> to populate the gallery.
         </p>
       </div>
     );
@@ -80,189 +83,197 @@ export default function GalleryViewer({ imageSets }: { imageSets: ImageSet[] }) 
 
   if (pairs.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-white/60">No image pairs found in this gallery.</p>
+      <div className="rounded-3xl border border-dashed border-gray-300 bg-white/60 px-6 py-16 text-center">
+        <p className="text-gray-500">No images found in this gallery set yet.</p>
       </div>
     );
   }
 
   return (
     <>
-      {/* Loading Spinner Overlay - Standard Modal Pattern */}
-      {isLoading && (
-        <div 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            backdropFilter: 'blur(8px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999
-          }}
+      {/* Full-Size Image Modal */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm"
+          onClick={() => setSelectedImage(null)}
         >
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            gap: '16px' 
-          }}>
-            {/* Spinning Ring */}
-            <div 
-              style={{
-                width: '80px',
-                height: '80px',
-                border: '8px solid rgba(255, 255, 255, 0.2)',
-                borderTopColor: '#ffffff',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite'
-              }}
-            ></div>
-            {/* Loading Text */}
-            <p style={{ 
-              color: 'white', 
-              fontSize: '18px', 
-              fontWeight: '500',
-              margin: 0
-            }}>Loading images...</p>
-          </div>
-        </div>
-      )}
-      
-      <style jsx>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
-      
-    <div className="flex flex-col gap-10">
-      
-      {imageSets.length > 1 && (
-        <div className="sticky top-6 z-30 mb-8">
-          <div className="flex items-center justify-between text-xs uppercase tracking-[0.25em] text-white/50 mb-6 pt-4">
-            <span>Galleries</span>
-            <div style={{ paddingBlock: "20px" }} aria-hidden />
-            <span className="tracking-normal text-white/40">
-              {currentSetIndex + 1}/{imageSets.length}
-            </span>
-            
-          </div>
-          <div className="flex gap-2 overflow-x-auto px-3 py-2 rounded-full bg-white/5 backdrop-blur">
-            {imageSets.map((set, index) => {
-              const isActive = index === currentSetIndex;
-              return (
-                <button
-                  key={set.slug}
-                  onClick={() => switchSet(index)}
-                  className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                    isActive
-                      ? "bg-white text-black shadow-sm"
-                      : "text-white/70 hover:text-white hover:bg-white/10"
-                  }`}
-                >
-                  {set.name}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+          {/* Close Button */}
+          <button
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-6 right-6 z-10 rounded-full bg-black/50 backdrop-blur-sm p-2.5 text-white transition hover:bg-black/70 hover:scale-110"
+            aria-label="Close"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
 
-<div style={{ paddingBlock: "15px" }} aria-hidden />
-      <div className="flex flex-col items-center gap-8 min-h-[75vh] justify-center py-8">
-        <div className="w-full max-w-5xl">
-          <div className="rounded-xl overflow-hidden shadow-2xl mx-auto" style={{ maxWidth: '90vw' }}>
-            <div className="aspect-[16/9] bg-black flex items-center justify-center">
-              <BeforeAfter
-                before={pairs[currentImageIndex].beforeSrc}
-                after={pairs[currentImageIndex].afterSrc}
-                alt={`${currentSet.name} ${pairs[currentImageIndex].id}`}
-                position={50}
+          {/* Image Counter */}
+          <div className="absolute top-6 left-6 z-10 rounded-full bg-black/50 backdrop-blur-sm px-4 py-2 text-sm text-white">
+            {selectedImage.index + 1} / {pairs.length}
+          </div>
+
+          {/* Centered Image Container */}
+          <div className="absolute inset-0 flex items-center justify-center p-4 md:p-8">
+            <div className="relative flex items-center justify-center max-w-full max-h-full">
+              {/* Previous Button */}
+              {selectedImage.index > 0 && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); goToPrevious(); }}
+                  className="absolute -left-16 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 backdrop-blur-sm p-3 text-white transition hover:bg-black/70 hover:scale-110 hidden md:flex"
+                  aria-label="Previous"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+              )}
+
+              {/* Image */}
+              <img
+                src={selectedImage.src}
+                alt={selectedImage.id}
+                className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
               />
-            </div>
-          </div>
 
-          <div className="flex flex-wrap items-end justify-between gap-4 pb-4">
-            <div className="space-y-1">
-              <h1 className="text-2xl md:text-3xl text-white font-semibold">
-                {currentSet.name}
-              </h1>
-              <p className="text-white/60 text-sm md:text-base">
-                Before / After • Shot {currentImageIndex + 1} of {pairs.length}
-              </p>
-            </div>
-
-
-          </div>
-
-          {pairs.length > 1 && (
-            <div className="lg:hidden">
-              <div className="text-xs uppercase tracking-[0.25em] text-white/50 mb-3">Thumbnails</div>
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                {pairs.map((pair, index) => (
-                  <button
-                    key={pair.id}
-                    onClick={() => setCurrentImageIndex(index)}
-                    className={`relative flex-shrink-0 rounded-lg overflow-hidden transition-all ${
-                      index === currentImageIndex
-                        ? "ring-2 ring-white scale-105"
-                        : "opacity-60 hover:opacity-100 hover:scale-105"
-                    }`}
-                    style={{ width: "96px", height: "64px" }}
-                  >
-                    <img
-                      src={pair.beforeSrc}
-                      alt={`Thumbnail ${pair.id}`}
-                      className="h-full w-full object-cover"
-                      width={96}
-                      height={64}
-                    />
-                    {index === currentImageIndex && (
-                      <div className="pointer-events-none absolute inset-0 bg-white/20 backdrop-blur-[1px]" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {pairs.length > 1 && (
-          <div className="hidden w-full max-w-5xl rounded-2xl bg-white/5 backdrop-blur-md px-5 py-6 lg:block">
-            <div className="text-xs uppercase tracking-[0.25em] text-white/50 mb-4">Thumbnails</div>
-            <div className="grid grid-cols-4 gap-4">
-              {pairs.map((pair, index) => (
+              {/* Next Button */}
+              {selectedImage.index < pairs.length - 1 && (
                 <button
-                  key={pair.id}
-                  onClick={() => setCurrentImageIndex(index)}
-                  className={`relative rounded-xl overflow-hidden transition-all ${
-                    index === currentImageIndex
-                      ? "ring-2 ring-white"
-                      : "opacity-70 hover:opacity-100"
-                  }`}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); goToNext(); }}
+                  className="absolute -right-16 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 backdrop-blur-sm p-3 text-white transition hover:bg-black/70 hover:scale-110 hidden md:flex"
+                  aria-label="Next"
                 >
-                  <img
-                    src={pair.beforeSrc}
-                    alt={`Thumbnail ${pair.id}`}
-                    className="h-full w-full object-cover"
-                    width={140}
-                    height={90}
-                  />
-                  {index === currentImageIndex && (
-                    <div className="pointer-events-none absolute inset-0 bg-white/15 backdrop-blur-[1px]" />
-                  )}
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
-              ))}
+              )}
+            </div>
+          </div>
+
+          {/* Mobile Navigation Buttons */}
+          <div className="md:hidden absolute bottom-6 left-0 right-0 flex justify-center gap-4 z-10">
+            {selectedImage.index > 0 && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); goToPrevious(); }}
+                className="rounded-full bg-black/50 backdrop-blur-sm p-3 text-white transition hover:bg-black/70"
+                aria-label="Previous"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+            )}
+            {selectedImage.index < pairs.length - 1 && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); goToNext(); }}
+                className="rounded-full bg-black/50 backdrop-blur-sm p-3 text-white transition hover:bg-black/70"
+                aria-label="Next"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-10">
+        {/* Gallery Navigation */}
+        {imageSets.length > 1 && (
+          <div className="sticky top-4 z-10">
+            <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-3 rounded-full border border-gray-200 bg-white/90 px-4 py-3 shadow-sm backdrop-blur">
+              {imageSets.map((set, index) => {
+                const isActive = index === currentSetIndex;
+                return (
+                  <button
+                    type="button"
+                    key={set.slug}
+                    onClick={() => switchSet(index)}
+                    className={`group flex items-center gap-2 rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
+                      isActive
+                        ? "bg-gray-900 text-white shadow"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                    aria-pressed={isActive}
+                    aria-label={`Switch to ${set.name}`}
+                  >
+                    <span>{set.name}</span>
+                    <span className="rounded-full bg-gray-900/10 px-2 py-[0.15rem] text-[0.65rem] font-medium text-gray-700 transition group-hover:bg-gray-900/20 group-hover:text-gray-900">
+                      {set.pairs.length}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
+
+        <div className={`transition-opacity duration-300 ${isTransitioning ? "opacity-0" : "opacity-100"}`}>
+          <div className="space-y-6">
+            <div className="text-center sm:text-left">
+              <h2 className="text-3xl font-semibold text-gray-900">
+                {currentSet.name}
+              </h2>
+              <p className="text-xs uppercase tracking-[0.4em] text-gray-500">
+                {pairs.length} {pairs.length === 1 ? "Image" : "Images"}
+              </p>
+            </div>
+
+            <div className="grid grid-flow-dense gap-4 [grid-auto-rows:13.5rem] [grid-template-columns:repeat(auto-fit,minmax(15rem,1fr))] sm:[grid-auto-rows:16rem] lg:[grid-auto-rows:18rem]">
+              {pairs.map((pair, index) => {
+                const spanClass = index === 0
+                  ? "lg:row-span-2 lg:col-span-2"
+                  : index % 4 === 0
+                    ? "lg:row-span-2"
+                    : index % 4 === 1
+                      ? "lg:col-span-2"
+                      : "";
+
+                return (
+                  <button
+                    type="button"
+                    key={pair.id}
+                    onClick={() => handleThumbnailClick(index)}
+                    className={`group relative isolate flex h-full w-full cursor-pointer overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-gray-200 transition duration-300 hover:shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 ${spanClass}`}
+                  >
+                    <img
+                      src={pair.afterSrc}
+                      alt={pair.id}
+                      className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-110"
+                      loading="lazy"
+                    />
+
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden flex-col gap-1 px-5 pb-5 md:flex">
+                      <span className="text-[0.6rem] font-semibold uppercase tracking-[0.4em] text-white/60">
+                        {currentSet.name}
+                      </span>
+                      <span className="text-base font-medium text-white">
+                        {formatPairLabel(pair.id)}
+                      </span>
+                      <span className="text-xs text-white/70">
+                        AI-enhanced transformation #{index + 1}
+                      </span>
+                    </div>
+
+                    <div className="pointer-events-none absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/85 text-xs font-semibold text-gray-700 shadow-sm">
+                      {index + 1}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
     </>
   );
 }

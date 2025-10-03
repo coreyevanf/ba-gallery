@@ -11,26 +11,30 @@ export default function BeforeAfter({
   after,
   alt,
   position = 50,
+  onClick,
 }: {
   before: string;
   after: string;
   alt?: string;
   position?: number;
+  onClick?: () => void;
 }) {
   return (
-    <div className="w-full h-full bg-black flex items-center justify-center">
+    <div 
+      className="w-full h-full bg-black flex items-center justify-center"
+      onClick={onClick}
+    >
       <ReactCompareSlider
         itemOne={
           <ReactCompareSliderImage
             src={before}
             alt={alt ? `${alt} before` : "Before"}
-            loading="lazy"
-            decoding="async"
             style={{
               objectFit: "contain",
               objectPosition: "center",
               width: "100%",
               height: "100%",
+              maxHeight: "90vh",
             }}
           />
         }
@@ -38,13 +42,12 @@ export default function BeforeAfter({
           <ReactCompareSliderImage
             src={after}
             alt={alt ? `${alt} after` : "After"}
-            loading="lazy"
-            decoding="async"
             style={{
               objectFit: "contain",
               objectPosition: "center",
               width: "100%",
               height: "100%",
+              maxHeight: "90vh",
             }}
           />
         }
