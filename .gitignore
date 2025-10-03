@@ -25,7 +25,7 @@
 *.pem
 
 # large backup files
-public/input/backyp.zip
+*.zip
 
 # debug
 npm-debug.log*

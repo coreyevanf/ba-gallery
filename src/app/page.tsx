@@ -8,12 +8,12 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-black flex items-center justify-center">
       <div className="w-full max-w-3xl px-6 text-center space-y-10">
-        <div className="space-y-4">
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">Real Estate AI</p>
-          <h1 className="text-4xl md:text-5xl font-semibold text-white">
+        <div className="space-y-3">
+          <p className="text-sm tracking-wider font-medium text-white/50">Real Estate AI</p>
+          <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight tracking-tight">
             Preview Listing Photo Galleries
           </h1>
-          <p className="text-white/60 text-lg">
+          <p className="text-white/60 text-base font-normal leading-relaxed">
             Choose how you want to explore the generated transformations below.
           </p>
         </div>
