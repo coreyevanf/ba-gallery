@@ -100,7 +100,7 @@ export default function GalleryGrid({ images }: Props) {
           ))}
       </div>
 
-      {activeImage && (
+      {activeImage !== null && activeIndex !== null && (
         <div
           className={styles.modal}
           role="dialog"
@@ -122,7 +122,7 @@ export default function GalleryGrid({ images }: Props) {
             </button>
 
             <div className={styles.modalCounter}>
-              {activeIndex + 1} / {images.length}
+              {(activeIndex as number) + 1} / {images.length}
             </div>
 
             {images.length > 1 && (
