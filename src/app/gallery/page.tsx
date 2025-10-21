@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getGallerySets } from "@/lib/imageSets";
 import styles from "./gallery.module.css";
 import GalleryGrid, { type GalleryImage } from "./GalleryGrid";
@@ -46,11 +47,19 @@ export default async function GalleryPage() {
   return (
     <div className={styles.wrapper}>
       <aside className={styles.sidebar}>
-        <div className={styles.logo}>&#8734;</div>
+        <Link href="/" className={styles.logoLink}>
+          <Image
+            src="/logo.png"
+            alt="QuickHome AI"
+            width={200}
+            height={60}
+            className={styles.logoImage}
+            priority
+          />
+        </Link>
       </aside>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>Real Estate Gen AI Listings</h1>
         {hasImages ? (
           <div className={styles.sections}>
             {preparedSets.map((set) => (
